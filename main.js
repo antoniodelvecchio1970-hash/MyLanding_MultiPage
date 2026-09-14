@@ -353,10 +353,41 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Successful Submission
-      localStorage.setItem("contact_last_submit", Date.now().toString());
-      showFormSuccess();
-      contactForm.reset();
+      // UI: Loading State
+      if (contactSubmitBtn) contactSubmitBtn.disabled = true;
+      if (contactBtnText) contactBtnText.textContent = "INVIO IN CORSO...";
+
+      const endpoint = contactForm.getAttribute("action") || "https://formsubmit.co/ajax/antoniodelvecchio1970@gmail.com";
+      const formData = new FormData(contactForm);
+      formData.delete("b_website_hp");
+
+      fetch(endpoint, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Accept": "application/json"
+        }
+      })
+      .then(async (response) => {
+        if (response.ok) {
+          localStorage.setItem("contact_last_submit", Date.now().toString());
+          showFormSuccess();
+          contactForm.reset();
+        } else {
+          const data = await response.json().catch(() => ({}));
+          const errorMsg = data.message || data.error || "ERRORE DURANTE L'INVIO. RIPROVA TRA POCO.";
+          showFormError(errorMsg);
+        }
+      })
+      .catch(() => {
+        showFormError("ERRORE DI CONNESSIONE. VERIFICA LA RETE E RIPROVA.");
+      })
+      .finally(() => {
+        if (contactSubmitBtn) contactSubmitBtn.disabled = false;
+        if (contactBtnText && contactBtnText.textContent === "INVIO IN CORSO...") {
+          contactBtnText.textContent = "INVIA MESSAGGIO";
+        }
+      });
     });
   }
 
