@@ -661,24 +661,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Cookie Consent Logic
+  // Cookie Consent Logic — always shown on refresh
   const cookieBanner = document.getElementById('cookie-banner');
   if (cookieBanner) {
-    const hasConsent = localStorage.getItem('cookieConsent');
-    if (!hasConsent) {
-      cookieBanner.style.display = 'flex';
-      // Small delay to allow CSS transition to play
-      setTimeout(() => {
-        cookieBanner.classList.remove('translate-y-full');
-      }, 100);
-    }
+    cookieBanner.style.display = 'flex';
+    setTimeout(() => {
+      cookieBanner.classList.remove('translate-y-full');
+    }, 100);
 
     const setConsent = (value) => {
-      localStorage.setItem('cookieConsent', value);
       cookieBanner.classList.add('translate-y-full');
       setTimeout(() => {
         cookieBanner.style.display = 'none';
-      }, 700); // Wait for transition
+      }, 700);
     };
 
     document.getElementById('cookie-accept')?.addEventListener('click', () => setConsent('all'));
@@ -689,11 +684,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // BACK-TO-TOP: hidden on mobile until #capabilities is reached
+  // BACK-TO-TOP: on mobile, appears only AFTER the capabilities section (all 3 slides) has been scrolled past
   const backToTop = document.getElementById('back-to-top');
-  const capSection = document.getElementById('capabilities');
-  if (backToTop && capSection) {
-    const isMobileView = () => window.innerWidth < 640; // sm breakpoint = 640px
+  const afterCapSection = document.getElementById('concepts'); // first section after capabilities 400vh
+  if (backToTop && afterCapSection) {
+    const isMobileView = () => window.innerWidth < 640;
     const observer = new IntersectionObserver(
       (entries) => {
         if (!isMobileView()) return; // desktop: sm:flex handles it via CSS
@@ -702,15 +697,15 @@ document.addEventListener("DOMContentLoaded", () => {
             backToTop.classList.remove('hidden');
             backToTop.classList.add('flex');
           } else if (entry.boundingClientRect.top > 0) {
-            // capabilities is below viewport = user scrolled back up
+            // #concepts is below viewport = user is still in capabilities or above
             backToTop.classList.add('hidden');
             backToTop.classList.remove('flex');
           }
         });
       },
-      { threshold: 0, rootMargin: '0px 0px 0px 0px' }
+      { threshold: 0 }
     );
-    observer.observe(capSection);
+    observer.observe(afterCapSection);
   }
 });
 
