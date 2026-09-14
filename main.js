@@ -661,13 +661,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Cookie Consent Logic — always shown on refresh
+  // Cookie Consent Logic — always shown on refresh, 3 seconds after home copy animation ends
   const cookieBanner = document.getElementById('cookie-banner');
   if (cookieBanner) {
-    cookieBanner.style.display = 'flex';
-    setTimeout(() => {
-      cookieBanner.classList.remove('translate-y-full');
-    }, 100);
+    let bannerShown = false;
+    const showBanner = () => {
+      if (bannerShown) return;
+      bannerShown = true;
+      cookieBanner.style.display = 'flex';
+      setTimeout(() => {
+        cookieBanner.classList.remove('translate-y-full');
+      }, 50);
+    };
+
+    const heroLine3 = document.querySelector('.hero-line-3');
+    if (heroLine3) {
+      heroLine3.addEventListener('animationend', (e) => {
+        if (!e.animationName || e.animationName === 'heroTextRevealOrganic') {
+          setTimeout(showBanner, 3000);
+        }
+      }, { once: true });
+      // Fallback timer: 2350ms (0.85s delay + 1.5s duration) + 3000ms = 5350ms
+      setTimeout(showBanner, 5400);
+    } else {
+      // Fallback for pages without hero-line-3: 3 seconds after load
+      setTimeout(showBanner, 3000);
+    }
 
     const setConsent = (value) => {
       cookieBanner.classList.add('translate-y-full');
