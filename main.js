@@ -688,5 +688,29 @@ document.addEventListener("DOMContentLoaded", () => {
       setConsent('essential');
     });
   }
+
+  // BACK-TO-TOP: hidden on mobile until #capabilities is reached
+  const backToTop = document.getElementById('back-to-top');
+  const capSection = document.getElementById('capabilities');
+  if (backToTop && capSection) {
+    const isMobileView = () => window.innerWidth < 640; // sm breakpoint = 640px
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!isMobileView()) return; // desktop: sm:flex handles it via CSS
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            backToTop.classList.remove('hidden');
+            backToTop.classList.add('flex');
+          } else if (entry.boundingClientRect.top > 0) {
+            // capabilities is below viewport = user scrolled back up
+            backToTop.classList.add('hidden');
+            backToTop.classList.remove('flex');
+          }
+        });
+      },
+      { threshold: 0, rootMargin: '0px 0px 0px 0px' }
+    );
+    observer.observe(capSection);
+  }
 });
 

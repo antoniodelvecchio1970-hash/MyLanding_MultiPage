@@ -82,17 +82,17 @@ body {
 .circle-cta-btn {
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.circle-cta-btn:hover {
-  background-color: currentColor;
-  color: #0A0A0A;
-  transform: scale(1.08);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-}
 .circle-cta-btn svg {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.circle-cta-btn:hover svg {
-  transform: translateX(6px);
+/* Desktop hover: no glow, no black fill — subtle scale only */
+@media (hover: hover) and (pointer: fine) {
+  .circle-cta-btn:hover {
+    transform: scale(1.08);
+  }
+  .circle-cta-btn:hover svg {
+    transform: translateX(6px);
+  }
 }
 
 /* SCROLL INDICATOR ANIMATION */
