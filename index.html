@@ -150,13 +150,13 @@
 
   </div>
 
-  <!-- ================= 1. HERO CANVAS SCROLL-SCRUB SECTION (250VH GSAP PIN) ================= -->
-  <div class="hero-scroll-wrapper relative w-full h-[250vh]">
+  <!-- ================= 1. ARCHITECTURAL CANVAS SEQUENCE HERO SECTION (250VH STICKY PIN) ================= -->
+  <div class="hero-sequence-container relative w-full h-[250vh]">
 
     <section
-      class="hero-section sticky top-0 left-0 w-full h-screen flex flex-col justify-between px-6 sm:px-8 lg:px-20 py-6 sm:py-8 overflow-hidden group">
+      class="hero-sticky-container sticky top-0 left-0 w-full h-screen min-h-[560px] sm:min-h-[680px] flex flex-col justify-between px-6 sm:px-8 lg:px-20 py-6 sm:py-8 overflow-hidden group">
 
-      <!-- HERO CANVAS (Frame Sequence Rendered via JS — NO <video>) -->
+      <!-- HERO CANVAS (59 FRAME SEQUENCE RENDERED AT 100% ORIGINAL VISUAL FIDELITY) -->
       <canvas id="hero-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
 
       <!-- TOP HEADER / OVERLAY NAVIGATION (Z-30) -->
@@ -189,16 +189,22 @@
 
       </header>
 
-      <!-- HERO OVERLAY HEADLINE ("Design. Evolution. Impact.") -->
+      <!-- HERO OVERLAY HEADLINE ("Design. Evolution. Impact.") WITH STATIONARY COLOR ROLL-OVER (Z-30) -->
       <div id="hero" class="w-full max-w-7xl mx-auto flex-1 flex flex-col justify-start pt-3 sm:pt-0 sm:justify-center items-start z-30 relative">
         <div class="space-y-4 sm:space-y-8">
+
+          <!-- H1 Headline (-15% on mobile: 41px vs 48px; preserved 7xl/8xl on desktop) -->
           <h1 class="text-[41px] sm:text-7xl lg:text-8xl font-light text-white tracking-tight leading-[1.06] select-none">
             <span class="hero-line-1">Design.</span><br />
             <span class="hero-line-2">Evolution.</span><br />
             <span class="hero-line-3 font-normal">Impact.</span>
           </h1>
+
+
         </div>
       </div>
+
+      <!-- SCROLL INDICATOR — desktop: bottom row -->
 
       <!-- Mobile COPYRIGHT (absolute bottom-center) -->
       <div class="sm:hidden absolute bottom-4 left-0 right-0 flex justify-center z-30 pointer-events-none">
@@ -212,6 +218,7 @@
         <div class="text-[10px] font-mono tracking-widest text-white/50 uppercase">
           ANTONIO DEL VECCHIO — COPYRIGHT 2026
         </div>
+
         <div class="flex flex-col items-center space-y-3 cursor-pointer">
           <div class="w-[1px] h-8 bg-white/60 scroll-indicator-line"></div>
           <span class="text-[10px] font-mono tracking-widest text-white/80 uppercase">SCROLL</span>
