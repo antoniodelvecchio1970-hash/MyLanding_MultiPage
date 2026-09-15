@@ -13,6 +13,7 @@ body {
 }
 
 /* Ensure sticky elements work reliably on mobile WebKit / Safari */
+.hero-section,
 .cap-sticky-container {
   position: -webkit-sticky;
   position: sticky;
@@ -20,24 +21,18 @@ body {
   will-change: transform;
 }
 
-/* Hero Section: exact 100vh viewport, no overflow, purple fallback */
+/* Hero Section: exact 100vh, purple fallback, no overflow bleed */
 .hero-section {
   width: 100%;
   height: 100vh;
-  position: relative;
   overflow: hidden;
   background-color: #7649a3;
 }
 
-/* Hero Video: absolute cover with center bottom crop */
-.hero-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center bottom;
+/* Hero Canvas: GPU-accelerated layer */
+#hero-canvas {
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* ULTRA-SMOOTH GPU-ACCELERATED REVEAL & HOVER TRANSITION */

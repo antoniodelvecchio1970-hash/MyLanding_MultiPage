@@ -19,9 +19,204 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   gsap.ticker.lagSmoothing(0);
 
-  // 2. Register GSAP ScrollTrigger (used by Capabilities section)
+  // 2. Register GSAP ScrollTrigger
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
+
+  // 3. Setup Canvas & Frame Sequence — bifurcated Desktop / Mobile
+  const canvas = document.getElementById("hero-canvas");
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+
+    // ——— Asset Configuration ———
+    // Desktop (>768px): 60 horizontal JPGs → frame_000.jpg … frame_059.jpg
+    // Mobile  (≤768px): 40 square PNGs   → mobile_frame_001.png … mobile_frame_040.png
+    const frameCount = isMobile ? 40 : 60;
+
+    const currentFrame = (index) => {
+      if (isMobile) {
+        // 1-indexed, zero-padded to 3 digits
+        const pad = (index + 1).toString().padStart(3, '0');
+        return `assets/mobile_frame_${pad}.png`;
+      } else {
+        // 0-indexed, zero-padded to 3 digits
+        const pad = index.toString().padStart(3, '0');
+        return `assets/sequence/frame_${pad}.jpg`;
+      }
+    };
+
+    const images = new Array(frameCount);
+    const sequence = { frame: 0 };
+    let lastRenderedIndex = -1;
+
+    // ——— Frame Preloader ———
+    function loadFrame(i, priority) {
+      if (images[i]) return images[i];
+      const img = new Image();
+      if (priority === 'high' && 'fetchPriority' in img) {
+        img.fetchPriority = 'high';
+      }
+      img.src = currentFrame(i);
+      img.onload = () => {
+        const target = Math.min(frameCount - 1, Math.max(0, Math.floor(sequence.frame)));
+        if (lastRenderedIndex === -1 || Math.abs(i - target) <= Math.abs(lastRenderedIndex - target)) {
+          render();
+        }
+      };
+      images[i] = img;
+      return img;
+    }
+
+    // Priority: load frame 0 immediately
+    const frame0 = loadFrame(0, 'high');
+    if (frame0.complete) {
+      render();
+    } else {
+      frame0.onload = render;
+    }
+
+    // ——— Draw Functions ———
+
+    // DESKTOP: standard object-fit: cover, anchored center-center
+    function drawCoverDesktop(img) {
+      if (!img || !img.complete || img.naturalWidth === 0) return false;
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+
+      const scale = Math.max(cw / iw, ch / ih);
+      const dw = iw * scale;
+      const dh = ih * scale;
+      const dx = (cw - dw) * 0.5;  // center horizontally
+      const dy = (ch - dh) * 0.5;  // center vertically
+
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, dx, dy, dw, dh);
+      return true;
+    }
+
+    // MOBILE: object-fit: cover at 90% scale, anchored center-bottom
+    // Math:
+    //   1. Compute cover scale as Math.max(cw/iw, ch/ih)
+    //   2. Multiply draw dimensions by 0.9 → 10% reduction
+    //   3. dx centers horizontally: (cw - dw) * 0.5
+    //   4. dy anchors bottom edge: ch - dh (bottom of drawn image = bottom of canvas)
+    function drawCoverMobile(img) {
+      if (!img || !img.complete || img.naturalWidth === 0) return false;
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+
+      const coverScale = Math.max(cw / iw, ch / ih);
+      const reduction = 0.9;
+      const dw = iw * coverScale * reduction;
+      const dh = ih * coverScale * reduction;
+      const dx = (cw - dw) * 0.5;  // center horizontally
+      const dy = ch - dh;           // anchor to bottom edge
+
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, dx, dy, dw, dh);
+      return true;
+    }
+
+    // Unified draw dispatcher
+    function drawCoverImage(img) {
+      return isMobile ? drawCoverMobile(img) : drawCoverDesktop(img);
+    }
+
+    // ——— Render Loop ———
+    function render() {
+      const targetIndex = Math.min(frameCount - 1, Math.max(0, Math.floor(sequence.frame)));
+
+      // Preload target + surrounding buffer
+      loadFrame(targetIndex);
+      for (let offset = 1; offset <= 3; offset++) {
+        if (targetIndex + offset < frameCount) loadFrame(targetIndex + offset);
+        if (targetIndex - offset >= 0) loadFrame(targetIndex - offset);
+      }
+
+      // Render target frame
+      if (images[targetIndex] && drawCoverImage(images[targetIndex])) {
+        lastRenderedIndex = targetIndex;
+        return;
+      }
+
+      // Fallback: nearest loaded frame
+      let closestIndex = -1;
+      let minDist = Infinity;
+      for (let i = 0; i < frameCount; i++) {
+        if (images[i] && images[i].complete && images[i].naturalWidth > 0) {
+          const d = Math.abs(i - targetIndex);
+          if (d < minDist) { minDist = d; closestIndex = i; }
+        }
+      }
+      if (closestIndex !== -1) {
+        drawCoverImage(images[closestIndex]);
+        lastRenderedIndex = closestIndex;
+      }
+    }
+
+    // ——— Progressive Background Preloader ———
+    function preloadRemaining() {
+      let nextIdx = 1;
+      function loadNextBatch() {
+        const batchSize = isMobile ? 4 : 8;
+        const end = Math.min(frameCount, nextIdx + batchSize);
+        for (let i = nextIdx; i < end; i++) { loadFrame(i); }
+        nextIdx = end;
+        if (nextIdx < frameCount) {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadNextBatch, { timeout: 200 });
+          } else {
+            setTimeout(loadNextBatch, 50);
+          }
+        }
+      }
+      loadNextBatch();
+    }
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(preloadRemaining, { timeout: 300 });
+    } else {
+      setTimeout(preloadRemaining, 100);
+    }
+
+    // ——— Canvas Resize (DPR capped at 2) ———
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width || window.innerWidth;
+      const h = rect.height || window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      render();
+    }
+
+    let lastWidth = window.innerWidth;
+    window.addEventListener("resize", () => {
+      if (Math.abs(window.innerWidth - lastWidth) > 10) {
+        lastWidth = window.innerWidth;
+        resizeCanvas();
+      }
+    });
+    resizeCanvas();
+
+    // ——— GSAP ScrollTrigger Scrub (tied to .hero-scroll-wrapper) ———
+    gsap.to(sequence, {
+      frame: frameCount - 1,
+      snap: "frame",
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".hero-scroll-wrapper",
+        start: "top top",
+        end: "bottom bottom",
+        scrub: isMobile ? 0.3 : 0.5,
+        invalidateOnRefresh: true
+      },
+      onUpdate: render
+    });
+  }
 
   // 4. Full-Screen Immersive Capabilities ScrollTrigger Timeline (With End Hold State)
   const capPinWrapper = document.querySelector(".cap-pin-wrapper");
