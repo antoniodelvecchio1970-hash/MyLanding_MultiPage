@@ -13,7 +13,6 @@ body {
 }
 
 /* Ensure sticky elements work reliably on mobile WebKit / Safari */
-.hero-sticky-container,
 .cap-sticky-container {
   position: -webkit-sticky;
   position: sticky;
@@ -21,31 +20,17 @@ body {
   will-change: transform;
 }
 
-/* Mobile Hero Container Fallback & Geometry */
-.hero-video-container {
-  width: 100vw;
+/* Hero Section: exact 100vh viewport, no overflow, purple fallback */
+.hero-section {
+  width: 100%;
   height: 100vh;
   position: relative;
   overflow: hidden;
   background-color: #7649a3;
 }
 
-@media (max-width: 767px) {
-  .hero-video-container,
-  .hero-sticky-container {
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    position: relative;
-    overflow: hidden;
-    background-color: #7649a3;
-  }
-}
-
-/* Native Video & Hero Canvas Viewport Cover with center bottom alignment */
-video,
-.hero-video,
-#hero-canvas {
+/* Hero Video: absolute cover with center bottom crop */
+.hero-video {
   position: absolute;
   top: 0;
   left: 0;
@@ -53,8 +38,6 @@ video,
   height: 100%;
   object-fit: cover;
   object-position: center bottom;
-  will-change: transform;
-  transform: translateZ(0);
 }
 
 /* ULTRA-SMOOTH GPU-ACCELERATED REVEAL & HOVER TRANSITION */
