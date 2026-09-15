@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     frame0.onload = render;
   }
 
-  // Draw image inside canvas with 'object-fit: cover' logic
+  // Draw image inside canvas simulating mathematical 'object-fit: cover' with 'object-position: center bottom'
   function drawCoverImage(img) {
     if (!img || !img.complete || img.naturalWidth === 0) return false;
 
@@ -71,28 +71,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
 
-    const canvasRatio = canvasWidth / canvasHeight;
-    const imgRatio = imgWidth / imgHeight;
+    // Mathematical cover scaling: scale to fill both width and height completely
+    const scale = Math.max(canvasWidth / imgWidth, canvasHeight / imgHeight);
+    const drawWidth = imgWidth * scale;
+    const drawHeight = imgHeight * scale;
 
-    let drawWidth, drawHeight, offsetX, offsetY;
-
-    if (canvasRatio > imgRatio) {
-      drawWidth = canvasWidth;
-      drawHeight = canvasWidth / imgRatio;
-      offsetX = 0;
-      offsetY = (canvasHeight - drawHeight) / 2;
-    } else {
-      drawWidth = canvasHeight * imgRatio;
-      drawHeight = canvasHeight;
-      offsetX = (canvasWidth - drawWidth) / 2;
-      offsetY = 0;
-
-      // On mobile portrait (canvasRatio < 0.8), shift monkeys slightly to the left (~3.5% of drawWidth)
-      // to give them more visibility and balance the composition
-      if (canvasRatio < 0.8) {
-        offsetX -= drawWidth * 0.035;
-      }
-    }
+    // Center horizontally (50%)
+    const offsetX = (canvasWidth - drawWidth) * 0.5;
+    // Align to bottom (100% / bottom)
+    const offsetY = canvasHeight - drawHeight;
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.filter = 'none';
@@ -165,8 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Canvas resize with DPR capped at 2 to conserve mobile GPU memory
   function resizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width || window.innerWidth;
+    const h = rect.height || window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
     render();
   }
 
