@@ -87,10 +87,19 @@ document.addEventListener("DOMContentLoaded", () => {
       offsetX = (canvasWidth - drawWidth) / 2;
       offsetY = 0;
 
-      // On mobile portrait (canvasRatio < 0.8), shift monkeys slightly to the left (~3.5% of drawWidth)
-      // to give them more visibility and balance the composition
+      // On mobile portrait (canvasRatio < 0.8), shift monkeys slightly to the left
+      // and scale up to push the image up and fill the height better
       if (canvasRatio < 0.8) {
-        offsetX -= drawWidth * 0.035;
+        const mobileScale = 1.15; // Scale up to allow vertical shifting
+        drawWidth *= mobileScale;
+        drawHeight *= mobileScale;
+        
+        // Center horizontally again after scale
+        offsetX = (canvasWidth - drawWidth) / 2;
+        offsetX -= drawWidth * 0.20; // Shift even further left to reveal the right eye
+        
+        // Move image up so it takes all available height at the bottom
+        offsetY = canvasHeight - drawHeight; 
       }
     }
 
@@ -186,7 +195,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   gsap.to(sequence, {
     frame: frameCount - 1,
-    snap: "frame",
     ease: "none",
     scrollTrigger: {
       trigger: ".hero-sequence-container",
